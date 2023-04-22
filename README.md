@@ -6,5 +6,5 @@ Source code, and setup instructions, for a low-cost network of embedded systems 
 3. References to libraries and datasheets used to read and interpret sensor measurements
 4. Source code for nodes and gateways
 
-# Credit
+# Bibliographies
 Space to give credit to original authors
