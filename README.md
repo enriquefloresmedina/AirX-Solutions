@@ -7,4 +7,4 @@ Source code, and setup instructions, for a low-cost network of embedded systems 
 4. Source code for nodes and gateways
 
 # Bibliographies
-Space to give credit to original authors
+Space to note the modules used and give credit to original authors
