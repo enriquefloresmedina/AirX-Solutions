@@ -41,3 +41,12 @@ def mqtt_connect():
 def mqtt_publish(message):
     mqtt_client.publish(mqtt_topic, message)
     print("Message published to", mqtt_topic)
+    
+    
+def wifi_disconnect():
+    print('Disconnecting WIFI network...')
+    sta_if.disconnect()
+    while sta_if.isconnected():
+            pass
+    print('Disconnected from WIFI')
+    sta_if.active(False)

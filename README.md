@@ -5,3 +5,6 @@ Source code, and setup instructions, for a low-cost network of embedded systems 
 2. Tutorial to setup communication between an AWS S3 bucket and an ESP32 thing
 3. References to libraries and datasheets used to read and interpret sensor measurements
 4. Source code for nodes and gateways
+
+# Bibliographies
+Space to note the modules used and give credit to original authors
