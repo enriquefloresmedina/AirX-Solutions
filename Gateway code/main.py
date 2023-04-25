@@ -13,8 +13,6 @@ PASSWORD = '12345678'     # WIFI password
 READ_TIME = 15            # Time spent doing readings (s)
 TIME_ZONE_DIFF = -6       # Guadalajara Time Zone (GMT-6)
 
-CONF.wifi_connect(SSID, PASSWORD)
-CONF.mqtt_connect()
 
 GPS = GPSmodule.NEO6M(UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
 PMS = PMSmodule.PMS5003(UART(2, tx=17, rx=16, baudrate=9600))
@@ -79,8 +77,11 @@ async def main():
         
         if GPS.READY and BMP.READY and PMS.READY:
             MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
+            CONF.wifi_connect(SSID, PASSWORD) ############################
+            CONF.mqtt_connect() ####################
             CONF.mqtt_publish(MSG)
             print(MSG)  # Print for debugging, will remove
+            CONF.wifi_disconnect() ############################
         else:
             print("Missing data in stream:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove 
     
