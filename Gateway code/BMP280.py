@@ -1,5 +1,5 @@
 from micropython import const
-from machine import I2C
+# from machine import I2C
 
 BMP280_I2C_ADDR = const(0x76)
 
@@ -82,26 +82,21 @@ class BMP280():
         return [self.T, self.P]
 
     # get Temperature in Celsius
-    def getTemp(self):
+    @property
+    def temperature(self):
         self.get()
         return self.T
 
     # get Pressure in Pa
-    def getPress(self):
+    @property
+    def pressure(self):
         self.get()
         return self.P
 
     # Calculating absolute altitude
-    def	getAltitude(self):
-        return 44330*(1-(self.getPress()/101325)**(1/5.255))
-
-    # Get a comma separated string with Temperature (Celsius), Pressure (Pa), and Altitude (m)
-    def getBMPData(self):
-        return str(self.getTemp()) + ',' + str(self.getPress()) + ',' + str(self.getAltitude())
-
-    def dataReady(self):
-        self.get()
-        return False if self.T == -1 and self.P == -1 else True
+    @property
+    def	altitude(self):
+        return 44330*(1-(self.pressure/101325)**(1/5.255))
 
     # sleep mode
     def poweroff(self):
@@ -110,3 +105,9 @@ class BMP280():
     # normal mode
     def poweron(self):
         self.setReg(0xF4, 0x2F)
+
+    @property
+    def READY(self):
+        self.get()
+        if self.T == -1 and self.P == -1: return False 
+        else: return True

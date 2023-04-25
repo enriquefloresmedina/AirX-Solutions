@@ -318,20 +318,6 @@ class PMS5003_base:
         else:
             print("PMS5003 Sensor not active")
 
-    # PM readings with CF=1 (factory environment)
-    def readStdPM(self):
-        if self._active and self._timestamp is not None:
-            return str(self._pm10_standard) + ',' + str(self._pm25_standard) + ',' + str(self._pm100_standard)
-        else:
-            return None
-
-    # PM readings considering an atmospheric environment
-    def readEnvPM(self):
-        if self._active and self._timestamp is not None:
-            return str(self._pm10_env) + ',' + str(self._pm25_env) + ',' + str(self._pm100_env)
-        else:
-            return None
-
     def _flush_uart(self):
         while self._uart.any():
             self._uart.read(self._uart.any())
@@ -507,7 +493,7 @@ class PMS5003_base:
                 if check == checksum:
                     if self._uart.any() > 32:
                         self._flush_uart()  # just to prevent getting flooded if a callback took too long
-                        # self._warn("Getting too many new data frames, callback too slow")
+                        self._warn("Getting too many new data frames, callback too slow")
                     frame = struct.unpack(">HHHHHHHHHHHHHH", bytes(buffer[4:]))
                     no_values = True
                     for i in range(6, 12):
@@ -555,6 +541,11 @@ class PMS5003_base:
         self._particles_25um = None
         self._particles_50um = None
         self._particles_100um = None
+
+    @property
+    def READY(self):
+        if self._active and self._timestamp is not None: return True
+        else: return False
 
     @property
     def pm10_standard(self):

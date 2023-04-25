@@ -1,40 +1,34 @@
-from machine import RTC, UART, Pin, SoftI2C
+from machine import UART, Pin, SoftI2C
 import uasyncio as asyncio
-import ntptime
-import PMS5003 as PMS
-import NEO6M as GPS
+import PMS5003 as PMSmodule
+import NEO6M as GPSmodule
 import NETCONF as CONF
-import BMP280 as BMP
+import BMP280 as BMPmodule
+import time
 
 # Adjust these parameters for each Gateway
 SENSOR_ID = 1             # Sensor ID
 SSID = "Enrique's iPhone" # WIFI SSID
 PASSWORD = '12345678'     # WIFI password
-GPS_READ_TIME = 15        # Time spent waiting for GPS readings (s)
+READ_TIME = 15            # Time spent doing readings (s)
 TIME_ZONE_DIFF = -6       # Guadalajara Time Zone (GMT-6)
 
 CONF.wifi_connect(SSID, PASSWORD)
 CONF.mqtt_connect()
 
-ntptime.settime()
+GPS = GPSmodule.NEO6M(UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
+PMS = PMSmodule.PMS5003(UART(2, tx=17, rx=16, baudrate=9600))
+BMP = BMPmodule.BMP280(SoftI2C(sda=Pin(21), scl=Pin(22)))
 
-(YY, MM, DD, wd, hh, mm, ss, ms) = RTC().datetime()
-RTC().init((YY, MM, DD, wd, hh + TIME_ZONE_DIFF, mm, ss, ms))
-
-gpsModule = GPS.NEO6M(UART(1, tx=10, rx=9, baudrate=9600), GPS_READ_TIME, TIME_ZONE_DIFF)
-pmModule = PMS.PMS5003(UART(2, tx=17, rx=16, baudrate=9600))
-bmpModule = BMP.BMP280(SoftI2C(sda=Pin(21), scl=Pin(22)))
+def avgReadings(DAT1, DAT2, DAT3, N):
+    return str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
 
 async def main():
     global SENSOR_ID
 
-    MSG = "ID,DATE_TIME,LAT,LON,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
-    GPSmsg = "GPS_NULL"
-    PMmsg = "PM_NULL"
-    BMPmsg = "BMP_NULL"
-    DATEmsg = "DATE_NULL"
+    MSG = "ID,TIMEDATE,LAT,LON,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
     
-    while pmModule.readEnvPM() is None:
+    while not PMS.READY:
         print('Activating PMS5003...') 
         await asyncio.sleep(15)
 
@@ -42,40 +36,52 @@ async def main():
     print('Starting main program...')
 
     while True:
-        gpsModule.updateGPS()
-        if gpsModule.dataReady():
-            GPSmsg = gpsModule.getGPSData()
-            GPS_READY = True
-        else:
-            GPSmsg = "GPS_NULL"
-            GPS_READY = False
 
-        pmModule.start()
-        if pmModule.readEnvPM() is not None:
-            PMmsg = pmModule.readEnvPM() 
-            PMS_READY = True
-        else:
-            PMmsg = "PMS_NULL"
-            PMS_READY = False
-        pmModule.stop()
+        TIMEOUT = time.time() + READ_TIME
 
-        bmpModule.poweron()
-        if bmpModule.dataReady():
-            BMPmsg = bmpModule.getBMPData()
-            BMP_READY = True
-        else:
-            BMPmsg = "BMP_NULL"
-            BMP_READY = False
-        bmpModule.poweroff()
+        GPS.reset()
+        PMSmsg = "PM_NULL"; BMPmsg = "BMP_NULL"; GPSmsg = "GPS_NULL"
+        PMScount = 0;       BMPcount = 0
+        PM10 = 0; PM25 = 0; PM100 = 0
+        TEMP = 0; ALT  = 0; PRES  = 0
 
-        DATEmsg = str(RTC().datetime()[2]) + '/' + str(RTC().datetime()[1]) + '/' + str(RTC().datetime()[0])
+        while time.time() <= TIMEOUT:
 
-        if PMS_READY and GPS_READY and BMP_READY:
-            MSG = MSG + str(SENSOR_ID) + ',' + DATEmsg + '-' + GPSmsg + ',' + PMmsg + ',' + BMPmsg + '\n'
+            if not GPS.READY: 
+                GPS.checkGPS()
+                if GPS.READY: GPSmsg = GPS.getData()
+                else: GPSmsg = "GPS_NULL"
+
+            if PMScount <= 300: 
+                PMS.start()
+                if PMS.READY:
+                    PM10 = PMS.pm10_env + PM10
+                    PM25 = PMS.pm25_env + PM25
+                    PM100 = PMS.pm100_env + PM100 
+                    PMScount += 1
+            PMS.stop()
+
+            if BMPcount <= 300: 
+                BMP.poweron()
+                if BMP.READY:
+                    TEMP = BMP.temperature + TEMP
+                    PRES = BMP.pressure + PRES
+                    ALT = BMP.altitude + ALT
+                    BMPcount += 1
+            BMP.poweroff()
+
+            await asyncio.sleep(0.5)
+
+        print("PMS readings: " + str(PMScount))
+        print("BMP readings: " + str(BMPcount))
+        PMSmsg = avgReadings(PM10, PM25, PM100, PMScount)
+        BMPmsg = avgReadings(TEMP, PRES, ALT, BMPcount)
+        
+        if GPS.READY and BMP.READY and PMS.READY:
+            MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
             CONF.mqtt_publish(MSG)
+            print(MSG)  # Print for debugging, will remove
         else:
-            print("Missing data in stream:", str(SENSOR_ID) + ',' + DATEmsg + '-' + GPSmsg + ',' + PMmsg + ',' + BMPmsg)
-       
-        await asyncio.sleep(0.5)     
+            print("Missing data in stream:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove 
     
 asyncio.run(main())
