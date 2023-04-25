@@ -7,6 +7,7 @@ import BMP280 as BMPmodule
 import time
 
 # Adjust these parameters for each Gateway
+UNIQUE_ID = 0             # Lecture ID
 SENSOR_ID = 1             # Sensor ID
 SSID = "Enrique's iPhone" # WIFI SSID
 PASSWORD = '12345678'     # WIFI password
@@ -19,7 +20,8 @@ PMS = PMSmodule.PMS5003(UART(2, tx=17, rx=16, baudrate=9600))
 BMP = BMPmodule.BMP280(SoftI2C(sda=Pin(21), scl=Pin(22)))
 
 def avgReadings(DAT1, DAT2, DAT3, N):
-    return str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
+    UNIQUE_ID = UNIQUE_ID + 1
+    return str( UNIQUE_ID + int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
 
 async def main():
     global SENSOR_ID
