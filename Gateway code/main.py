@@ -4,6 +4,7 @@ import PMS5003 as PMSmodule
 import NEO6M as GPSmodule
 import NETCONF as CONF
 import BMP280 as BMPmodule
+import WhatsApp_bot as wb
 import time
 
 # Adjust these parameters for each Gateway
@@ -13,6 +14,14 @@ SSID = "Enrique's iPhone" # WIFI SSID
 PASSWORD = '12345678'     # WIFI password
 READ_TIME = 15            # Time spent doing readings (s)
 TIME_ZONE_DIFF = -6       # Guadalajara Time Zone (GMT-6)
+
+# Parameters for the bot
+phone_number = 5213318635546 #Your phone number in international format
+message = "Prueba de bot"
+api_key = 3344572 #callmebot API key
+
+CONF.wifi_connect(SSID, PASSWORD) 
+CONF.mqtt_connect()
 
 
 GPS = GPSmodule.NEO6M(UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
@@ -79,11 +88,11 @@ async def main():
         
         if GPS.READY and BMP.READY and PMS.READY:
             MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
-            CONF.wifi_connect(SSID, PASSWORD) ############################
-            CONF.mqtt_connect() ####################
             CONF.mqtt_publish(MSG)
+            message = MSG
+            wb.send_message(phone_number, message, api_key)
             print(MSG)  # Print for debugging, will remove
-            CONF.wifi_disconnect() ############################
+           
         else:
             print("Missing data in stream:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove 
     
