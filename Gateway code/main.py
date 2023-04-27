@@ -4,7 +4,6 @@ import PMS5003 as PMSmodule
 import NEO6M as GPSmodule
 import NETCONF as CONF
 import BMP280 as BMPmodule
-import WhatsApp_bot as wb
 import time
 
 # Adjust these parameters for each Gateway
@@ -90,7 +89,6 @@ async def main():
             MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
             CONF.mqtt_publish(MSG)
             message = MSG
-            wb.send_message(phone_number, message, api_key)
             print(MSG)  # Print for debugging, will remove
            
         else:
