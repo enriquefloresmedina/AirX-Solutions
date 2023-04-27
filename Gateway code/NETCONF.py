@@ -1,20 +1,11 @@
 from umqtt.robust import MQTTClient
-import network
+import network, time
 
-def wifi_connect(SSID, PASSWORD):
+def wifi_init():
     global sta_if
-
     sta_if = network.WLAN(network.STA_IF)
-    
-    if not sta_if.isconnected():
-        print('Connecting to WIFI network...')
-        sta_if.active(True)
-        sta_if.connect(SSID, PASSWORD)
-        while not sta_if.isconnected():
-            pass
-    print('Connected to WIFI!')
 
-def mqtt_connect():
+def mqtt_init():
     global mqtt_client, mqtt_topic
     
     certificate_file = "/2f9a209bc84e9517f80f7d89d929a7d7f08d16118b7466195dd23a5ad42aadeb-certificate.pem.crt"
@@ -31,8 +22,9 @@ def mqtt_connect():
 
     mqtt_client = MQTTClient(client_id=mqtt_client_id, server=mqtt_host, port=mqtt_port, keepalive=5000, ssl=True, ssl_params={"cert":certificate, "key":private_key, "server_side":False})
 
+def mqtt_connect():
     if not sta_if.isconnected():
-        print('Connect to a wifi network first!')
+        print('Connect to a WIFI network first!')
     else:
         print('Connecting to MQTT client...')
         mqtt_client.connect()
@@ -41,12 +33,27 @@ def mqtt_connect():
 def mqtt_publish(message):
     mqtt_client.publish(mqtt_topic, message)
     print("Message published to", mqtt_topic)
+    time.sleep(1)
+
+def mqtt_disconnect():
+    mqtt_client.disconnect()
+    print('Disconnected from MQTT client!')
+
+def wifi_connect(SSID, PASSWORD):
+    global sta_if
     
+    if not sta_if.isconnected():
+        print('Connecting to WIFI network...')
+        sta_if.active(True)
+        sta_if.connect(SSID, PASSWORD)
+        while not sta_if.isconnected():
+            pass
+    print('Connected to WIFI!')
     
 def wifi_disconnect():
-    print('Disconnecting WIFI network...')
-    sta_if.disconnect()
-    while sta_if.isconnected():
+    if sta_if.isconnected(): 
+        sta_if.disconnect()
+        while sta_if.isconnected():
             pass
+        sta_if.active(False)
     print('Disconnected from WIFI')
-    sta_if.active(False)

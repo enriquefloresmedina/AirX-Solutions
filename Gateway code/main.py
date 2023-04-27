@@ -1,4 +1,4 @@
-from machine import UART, Pin, SoftI2C
+import machine as ESP32
 import uasyncio as asyncio
 import PMS5003 as PMSmodule
 import NEO6M as GPSmodule
@@ -7,81 +7,96 @@ import BMP280 as BMPmodule
 import time
 
 # Adjust these parameters for each Gateway
-SENSOR_ID = 1             # Sensor ID
-SSID = "Enrique's iPhone" # WIFI SSID
-PASSWORD = '12345678'     # WIFI password
-READ_TIME = 15            # Time spent doing readings (s)
-TIME_ZONE_DIFF = -6       # Guadalajara Time Zone (GMT-6)
+SENSOR_ID = 1               # Sensor ID
+SSID = "Enrique's iPhone"   # WIFI SSID
+PASSWORD = '12345678'       # WIFI password
+READ_TIME = 15              # Time spent doing readings (s)
+TIME_ZONE_DIFF = -6         # Guadalajara Time Zone (GMT-6)
+
+CONF.wifi_init() 
+CONF.mqtt_init()
 
 CONF.wifi_connect(SSID, PASSWORD)
 CONF.mqtt_connect()
 
-GPS = GPSmodule.NEO6M(UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
-PMS = PMSmodule.PMS5003(UART(2, tx=17, rx=16, baudrate=9600))
-BMP = BMPmodule.BMP280(SoftI2C(sda=Pin(21), scl=Pin(22)))
+GPS = GPSmodule.NEO6M(ESP32.UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
+PMS = PMSmodule.PMS5003(ESP32.UART(2, tx=17, rx=16, baudrate=9600))
+BMP = BMPmodule.BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22)))
 
 def avgReadings(DAT1, DAT2, DAT3, N):
-    return str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
+    if N is not 0: return str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
+    else: return 'None'
 
 async def main():
-    global SENSOR_ID
+    global BMP
 
     MSG = "ID,TIMEDATE,LAT,LON,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
-    
+
     while not PMS.READY:
+        if PMS.NC: break
         print('Activating PMS5003...') 
         await asyncio.sleep(15)
 
-    print('PMS5003 activated!')
+    if PMS.NC: PMS.stop(); PMS.sleep()
+
     print('Starting main program...')
 
     while True:
-
         TIMEOUT = time.time() + READ_TIME
 
         GPS.reset()
-        PMSmsg = "PM_NULL"; BMPmsg = "BMP_NULL"; GPSmsg = "GPS_NULL"
-        PMScount = 0;       BMPcount = 0
-        PM10 = 0; PM25 = 0; PM100 = 0
-        TEMP = 0; ALT  = 0; PRES  = 0
+        PMSmsg = BMPmsg = GPSmsg = 'None'
+        PMScount = BMPcount = 0
+        PM10 = PM25 = PM100 = 0
+        TEMP = ALT = PRES = 0
 
         while time.time() <= TIMEOUT:
-
+        
             if not GPS.READY: 
                 GPS.checkGPS()
                 if GPS.READY: GPSmsg = GPS.getData()
-                else: GPSmsg = "GPS_NULL"
+                else: GPSmsg = 'None'
 
-            if PMScount <= 300: 
-                PMS.start()
-                if PMS.READY:
-                    PM10 = PMS.pm10_env + PM10
-                    PM25 = PMS.pm25_env + PM25
-                    PM100 = PMS.pm100_env + PM100 
-                    PMScount += 1
-            PMS.stop()
+            if not PMS.NC:
+                if PMScount < 300: 
+                    PMS.wakeUp()
+                    if PMS.READY:
+                        PM10 = PMS.pm10_env + PM10
+                        PM25 = PMS.pm25_env + PM25
+                        PM100 = PMS.pm100_env + PM100 
+                        PMScount += 1
+                PMS.sleep()
 
-            if BMPcount <= 300: 
-                BMP.poweron()
-                if BMP.READY:
-                    TEMP = BMP.temperature + TEMP
-                    PRES = BMP.pressure + PRES
-                    ALT = BMP.altitude + ALT
-                    BMPcount += 1
-            BMP.poweroff()
+            if not BMP.NC:
+                if BMPcount < 300: 
+                    BMP.poweron()
+                    if BMP.READY:
+                        TEMP = BMP.temperature + TEMP
+                        PRES = BMP.pressure + PRES
+                        ALT = BMP.altitude + ALT
+                        BMPcount += 1
+                BMP.poweroff()
+            
+            if not GPS.READY: await asyncio.sleep(0.5)
+            elif (BMPcount < 300 and PMScount < 300): await asyncio.sleep(0.025)
+            else: await asyncio.sleep(10); ESP32.idle()
 
-            await asyncio.sleep(0.5)
-
-        print("PMS readings: " + str(PMScount))
-        print("BMP readings: " + str(BMPcount))
+        print("PMS readings: " + str(PMScount)) # Print for debugging, will remove 
+        print("BMP readings: " + str(BMPcount)) # Print for debugging, will remove 
         PMSmsg = avgReadings(PM10, PM25, PM100, PMScount)
         BMPmsg = avgReadings(TEMP, PRES, ALT, BMPcount)
         
-        if GPS.READY and BMP.READY and PMS.READY:
+        if GPS.READY:
             MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
-            CONF.mqtt_publish(MSG)
-            print(MSG)  # Print for debugging, will remove
+            try: 
+                CONF.mqtt_publish(MSG)
+            except:
+                print(MSG) # Print for debugging, will remove
         else:
-            print("Missing data in stream:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove 
-    
+            print("Missing data:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove
+
+        # Implement a reconnect attempt function for PMS5003
+
+        if BMP.NC: BMP = BMPmodule.BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22))) 
+        
 asyncio.run(main())

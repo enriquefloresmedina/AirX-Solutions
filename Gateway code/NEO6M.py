@@ -25,19 +25,23 @@ class NEO6M():
         self._uart.readline()
         buff = str(self._uart.readline())
         parts = buff.split(',')
-        print(parts) # Print for debugging, will remove
+        # print(parts) # Print for debugging, will remove
 
-        if parts[0] == "b'$GPRMC" and parts[2] == 'A':
- 
+        if parts[0] == "b'$GPRMC" and parts[1] and parts[9]:
+
             [hh, mm, ss, DD, MM, YY] = self._getDateTime(parts[1][0:2], parts[1][2:4], parts[1][4:6],
                                                          parts[9][0:2], parts[9][2:4], parts[9][4:6])
             self._timeDate = hh + ":" + mm + ":" + ss + "-" + DD + '/' + MM + '/' + YY
 
-            self._latitude = self._convertToDegree(parts[3])
-            if parts[4] == 'S': self._latitude = '-' + self._latitude
+            if parts[2] == 'A':
+                self._latitude = self._convertToDegree(parts[3])
+                if parts[4] == 'S': self._latitude = '-' + self._latitude
 
-            self._longitude = self._convertToDegree(parts[5])
-            if parts[6] == 'W': self._longitude = '-' + self._longitude 
+                self._longitude = self._convertToDegree(parts[5])
+                if parts[6] == 'W': self._longitude = '-' + self._longitude
+            else:
+                self._longitude = 'None'
+                self._latitude = 'None'
 
             self._DATA_READY = True
 
