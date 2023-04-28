@@ -42,7 +42,7 @@ def avgReadings(DAT1, DAT2, DAT3, N):
 async def main():
     global BMP
 
-    MSG = "ID,TIMEDATE,LAT,LON,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
+    MSG = "ID,IMEDATE,LAT,LON,UID,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
 
     while not PMS.READY:
         if PMS.NC: break
