@@ -4,45 +4,34 @@ import PMS5003 as PMSmodule
 import NEO6M as GPSmodule
 import NETCONF as CONF
 import BMP280 as BMPmodule
+import quality_mesh as qm
 import time
 
 # Adjust these parameters for each Gateway
-<<<<<<< HEAD
+UNIQUE_ID = 0               # Lecture ID
 SENSOR_ID = 1               # Sensor ID
 SSID = "Enrique's iPhone"   # WIFI SSID
 PASSWORD = '12345678'       # WIFI password
 READ_TIME = 15              # Time spent doing readings (s)
 TIME_ZONE_DIFF = -6         # Guadalajara Time Zone (GMT-6)
 
-CONF.wifi_init() 
+CONF.wifi_init()
 CONF.mqtt_init()
-=======
-UNIQUE_ID = 0             # Lecture ID
-SENSOR_ID = 1             # Sensor ID
-SSID = "Enrique's iPhone" # WIFI SSID
-PASSWORD = '12345678'     # WIFI password
-READ_TIME = 15            # Time spent doing readings (s)
-TIME_ZONE_DIFF = -6       # Guadalajara Time Zone (GMT-6)
->>>>>>> cd9b6436de5a00d8dbb60322310f7a31597de13c
-
 
 GPS = GPSmodule.NEO6M(ESP32.UART(1, tx=10, rx=9, baudrate=9600), TIME_ZONE_DIFF)
 PMS = PMSmodule.PMS5003(ESP32.UART(2, tx=17, rx=16, baudrate=9600))
 BMP = BMPmodule.BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22)))
 
 def avgReadings(DAT1, DAT2, DAT3, N):
-<<<<<<< HEAD
-    if N is not 0: return str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
+    if N is not 0: 
+        UNIQUE_ID = UNIQUE_ID + 1
+        return str( UNIQUE_ID + int(DAT1/N)) + str(int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
     else: return 'None'
-=======
-    UNIQUE_ID = UNIQUE_ID + 1
-    return str( UNIQUE_ID + int(DAT1/N)) + ',' + str(int(DAT2/N)) + ',' + str(int(DAT3/N))
->>>>>>> cd9b6436de5a00d8dbb60322310f7a31597de13c
 
 async def main():
     global BMP
 
-    MSG = "ID,IMEDATE,LAT,LON,UID,PM1.0,PM2.5,PM10,TEMP,PRES,ALT\n"
+    MSG = "ID,IMEDATE,LAT,LON,UID,PM1.0,PM2.5,PM10,TEMP,PRES,ALT,AQ\n"
 
     while not PMS.READY:
         if PMS.NC: break
@@ -99,8 +88,7 @@ async def main():
         BMPmsg = avgReadings(TEMP, PRES, ALT, BMPcount)
         
         if GPS.READY:
-            MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + '\n'
-<<<<<<< HEAD
+            MSG = MSG + str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg + qm.quality(PM25/PMScount) + '\n'
             try: 
                 CONF.mqtt_publish(MSG)
             except:
@@ -113,14 +101,3 @@ async def main():
         if BMP.NC: BMP = BMPmodule.BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22))) 
         
 asyncio.run(main())
-=======
-            CONF.wifi_connect(SSID, PASSWORD) ############################
-            CONF.mqtt_connect() ####################
-            CONF.mqtt_publish(MSG)
-            print(MSG)  # Print for debugging, will remove
-            CONF.wifi_disconnect() ############################
-        else:
-            print("Missing data in stream:", str(SENSOR_ID) + ',' + GPSmsg + ',' + PMSmsg + ',' + BMPmsg)  # Print for debugging, will remove 
-    
-asyncio.run(main())
->>>>>>> cd9b6436de5a00d8dbb60322310f7a31597de13c
