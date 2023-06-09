@@ -28,9 +28,9 @@ def interrupt(timer):
 
     ESP32.enable_irq(state)
 
-    DATA_S = ','.join(map(str, PMSdata + DHTdata + BMPdata))
-
     Screen.setMeasurments(DATA[:6])
+
+    DATA_S = ','.join(map(str, DATA))
 
     try: writeToSD(DATA_S)
     except: pass
