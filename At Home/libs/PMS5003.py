@@ -42,8 +42,8 @@ class PMS5003:
             self.pm10_aqi, self.pm25_aqi, self.pm100_aqi
         ))
         print('Particles (um/0.1L):\n  >0.3 = {:4.0f} | >0.5 = {:4.0f} | >1.0 =  {:4.0f}\n  >2.5 = {:4.0f} | >5.0 = {:4.0f} | >10.0 = {:4.0f}'.format(
-            self._particles_03um, self._particles_05um, self._particles_10um,
-            self._particles_25um, self._particles_50um, self._particles_100um
+            self.particles_03um, self.particles_05um, self.particles_10um,
+            self.particles_25um, self.particles_50um, self.particles_100um
         ))
         print('--------------------------------------------')
 
