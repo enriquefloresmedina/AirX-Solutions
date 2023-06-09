@@ -9,4 +9,4 @@ Source code, and setup instructions, for a low-cost network of embedded systems 
 # Bibliographies
 The indiviudal authors of the libraries and repositories used are quoted on their respective files or folders
 
-![AwAir User Manual](https://github.com/enriquefloresmedina/AwAir-Sensor/blob/main/PCBs%20and%20diagrams/QR%20Logo.png)
+<img src="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/main/PCBs%20and%20diagrams/QR%20Logo.png" alt="AwAir User Manual" width="300" >
