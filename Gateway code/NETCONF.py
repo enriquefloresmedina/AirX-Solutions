@@ -14,8 +14,11 @@ def mqtt_init():
     mqtt_port = 8883
     mqtt_topic = "esp32/publish"
     mqtt_host = "adi9qgij6bpmb-ats.iot.us-east-2.amazonaws.com"
-    with open(private_key_file, "r") as f:
-        private_key = f.read()
+    try:
+        with open(private_key_file, "r") as f:
+            private_key = f.read()
+    except OSError:
+        print('AWS certificates missing')
 
     with open(certificate_file, "r") as f:
         certificate = f.read()

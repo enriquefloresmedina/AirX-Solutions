@@ -81,7 +81,6 @@ class PMS5003_base:
         self._sleeping_state = assume_sleeping  # assume sleeping on start by default
         self._invalidateMeasurements()
         self._callback = None  # can be a short coroutine too; no args given
-        self.NC = False # Detect if it is disconnected
         asyncio.create_task(self._read())
 
     @staticmethod
@@ -187,7 +186,6 @@ class PMS5003_base:
                 res = await self._read_frame()
                 if res is None:
                     self._error("No response from PMS5003")
-                    self.NC = True # Detect if sensor is disconnected
                     return False
             else:
                 res = await self._sendCommand(0xe4, 0x01, False, delay=16000,
@@ -198,7 +196,6 @@ class PMS5003_base:
                                                   wait=WAIT_AFTER_WAKEUP * 1000)
                     if res is None:
                         self._error("No response from PMS5003")
-                        self.NC = True # Detect if sensor is disconnected
                         return False
                 self._flush_uart()
         self._debug("device woke up")
