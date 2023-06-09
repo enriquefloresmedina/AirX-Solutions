@@ -18,7 +18,8 @@ NETWORKS = {
     "iPhone de Sebas" : "sebas123",
     "Jesus" : "12345678",
     "AB" : "12345678",
-    "Wall-E" : "diego123"
+    "Wall-E" : "diego123",
+    "INFINITUM5B10_2.4" : "6200370058"
 }
 
 gc.collect()
