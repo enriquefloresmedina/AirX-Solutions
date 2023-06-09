@@ -1,4 +1,3 @@
-from libs.BMP280 import BMP280
 import machine as ESP32
 from setup import BMP, PMS, DHT, SD, REF_COUNT_UPLOAD
 from libs.UPLOAD import upload
