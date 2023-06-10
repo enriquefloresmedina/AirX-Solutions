@@ -10,6 +10,7 @@ import gc
 COUNT = 1
 POWER = True
 PM10 = PM25 = PM100 = HUM = TEMP = PRESS = 0
+DISABLE = False
 
 class Screen():
     
@@ -23,16 +24,27 @@ class Screen():
         Screen._update()
 
     @staticmethod
+    def disableScreens():
+        global DISABLE
+        DISABLE = True
+
+    @staticmethod
+    def enableScreens():
+        global DISABLE
+        DISABLE = False
+
+    @staticmethod
     def _update():
-        if not POWER: SSD.fill(0); SSD.show()
-        elif COUNT == 1: Screen.mainScreen(PM10, 'PM1.0')
-        elif COUNT == 2: Screen.mainScreen(PM25, 'PM2.5')
-        elif COUNT == 3: Screen.mainScreen(PM100, 'PM10')
-        elif COUNT == 4: Screen.mainScreen(HUM, 'H')
-        elif COUNT == 5: Screen.mainScreen(TEMP, 'T')
-        elif COUNT == 6: Screen.mainScreen(PRESS, 'P')
-        elif COUNT == 7: Screen.timeScreen()
-        else: Screen.wifiScreen(WIFI.status(), WIFI._ssid)
+        if not DISABLE:
+            if not POWER: SSD.fill(0); SSD.show()
+            elif COUNT == 1: Screen.mainScreen(PM10, 'PM1.0')
+            elif COUNT == 2: Screen.mainScreen(PM25, 'PM2.5')
+            elif COUNT == 3: Screen.mainScreen(PM100, 'PM10')
+            elif COUNT == 4: Screen.mainScreen(HUM, 'H')
+            elif COUNT == 5: Screen.mainScreen(TEMP, 'T')
+            elif COUNT == 6: Screen.mainScreen(PRESS, 'P')
+            elif COUNT == 7: Screen.timeScreen()
+            else: Screen.wifiScreen(WIFI.status(), WIFI._ssid)
 
     @staticmethod
     def setSSD(ssd):

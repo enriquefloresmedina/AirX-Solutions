@@ -1,4 +1,3 @@
-from libs.SCREEN import Screen
 import network
 import time
 
@@ -9,7 +8,6 @@ class Wifi:
         self.__debug = DEBUG
         self._wifi = network.WLAN(network.STA_IF)
 
-        Screen.wifiScreen(False, 'NO SSID')
         if self.scanForNetworks(networks, timeoutMS): self.connect()
         else: self._debug('Timed out - No network found')
 
@@ -22,7 +20,6 @@ class Wifi:
                 pass
         self._debug('Connected to WIFI network: ' + self._wifi.config('essid'))
         self._debug('IP address: ' + self._wifi.ifconfig()[0])
-        Screen.wifiScreen(True, self._wifi.config('essid'))
  
     def disconnect(self):
         if self._wifi.isconnected(): 

@@ -13,6 +13,7 @@ def interrupt(timer):
     global COUNTER
 
     while not PMS.getMeasure(): pass
+    Screen.enableScreens()
 
     state = ESP32.disable_irq()
 
@@ -35,6 +36,7 @@ def interrupt(timer):
     except: pass
 
     if average(DATA):
+        Screen.disableScreens()
         if Screen.power(): Screen.uploadingScreen()
         _thread.start_new_thread(upload, DATA)
 
