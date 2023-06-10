@@ -1,13 +1,12 @@
-from libs.BMP280 import BMP280
 import machine as ESP32
 from setup import BMP, PMS, DHT, SD, REF_COUNT_UPLOAD
 from libs.UPLOAD import upload
-from libs.SCREEN import Screen, POWER
+from libs.SCREEN import Screen
 import _thread
 import os
 import gc
 
-COUNTER = 0; SCREEN_CNT = 0
+COUNTER = 0
 PM10 = PM25 = PM100 = HUM = TEMP = PRESS = ALT = TEMPBMP = 0
 
 def interrupt(timer):
@@ -36,7 +35,7 @@ def interrupt(timer):
     except: pass
 
     if average(DATA):
-        if POWER: Screen.uploadingScreen()
+        if Screen.power(): Screen.uploadingScreen()
         _thread.start_new_thread(upload, DATA)
 
     gc.collect()

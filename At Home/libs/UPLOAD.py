@@ -1,24 +1,17 @@
-from setup import WIFI, NODE, GMT_SHIFT_HR, NETWORKS
+from setup import WIFI, NODE, NETWORKS
 from libs.SCREEN import Screen
 import gc
 import json
 import urequests
-import ntptime
-import utime
 import _thread
 
 def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
-    def setTime():
-        ntptime.settime()
-        timestamp = utime.mktime(utime.localtime()) - (GMT_SHIFT_HR * 3600)
-        dateTime = utime.localtime(timestamp)
-        return dateTime
 
     if not WIFI.status():
         if WIFI.scanForNetworks(NETWORKS, 2000): WIFI.connect()
 
     if WIFI.status():
-
+        
         datajson = { 
             "PM10": round(pm10),
             "PM25": round(pm25),
@@ -29,11 +22,10 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
             "HUM": round(hum) 
         }
 
-        try: dateTime = setTime()
-        except: _thread.exit()
-
-        TIME = "{:04d}:{:02d}:{:02d}-{:02d}:{:02d}:{:02d}".format(dateTime[0], dateTime[1], dateTime[2], 
-                                                                dateTime[3], dateTime[4], dateTime[5])
+        TIME_LIST = Screen.getTime()
+        TIME = "{:04d}:{:02d}:{:02d}-{:02d}:{:02d}:{:02d}".format(TIME_LIST[0], TIME_LIST[1], TIME_LIST[2], 
+                                                                  TIME_LIST[3], TIME_LIST[4], TIME_LIST[5])
+                                                                  
         URL = 'https://awair-database-default-rtdb.firebaseio.com/TEC/' + NODE + '/' + TIME + '.json'
 
         gc.collect()
@@ -42,12 +34,16 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
             json.dump(datajson, file)
 
         with open('DATA.json', 'r') as file:
-            data_js = file.read()
-            response = urequests.put(URL, data = data_js)
+            datajs = file.read()
+            try: response = urequests.put(URL, data = datajs)
+            except: 
+                WIFI.disconnect()
+                if Screen.power(): Screen.wifiScreen(False, WIFI._ssid)
+                _thread.exit()
 
         if response.status_code == 200: 
-            Screen.wifiScreen(True, WIFI._ssid)
+            if Screen.power(): Screen.wifiScreen(True, WIFI._ssid)
             _thread.exit()
 
-    Screen.wifiScreen(False, WIFI._ssid)
+    if Screen.power(): Screen.wifiScreen(False, WIFI._ssid)
     _thread.exit()

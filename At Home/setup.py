@@ -1,4 +1,5 @@
 import machine as ESP32
+from micropython import const
 from libs.BMP280 import BMP280
 from libs.PMS5003 import PMS5003
 from libs.NETCONF import Wifi
@@ -7,11 +8,11 @@ from libs.SCREEN import Screen
 from dht import DHT22
 import gc
 
-READ_TIME_MS = 7000
-REF_COUNT_UPLOAD = 86
-WIFI_TIMEOUT_MS = 30000
-GMT_SHIFT_HR = 6
-NODE = "AT_HOME_1"
+READ_TIME_MS = const(7000)
+REF_COUNT_UPLOAD = const(5)
+WIFI_TIMEOUT_MS = const(30000)
+GMT_SHIFT_HR = const(6)
+NODE = const("AT_HOME_2")
 
 NETWORKS = {
     "Enrique's iPhone" : "12345678",
@@ -28,6 +29,7 @@ Screen.setSSD(SSD)
 
 WIFI = Wifi(NETWORKS, WIFI_TIMEOUT_MS)
 Screen.setWIFI(WIFI)
+Screen.setGMTShiftHr(GMT_SHIFT_HR)
 
 SD = ESP32.SDCard(slot = 2)
 BMP = BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22), freq=100000, timeout=500000))

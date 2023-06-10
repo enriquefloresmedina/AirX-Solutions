@@ -3,11 +3,13 @@ from libs.WRITER import Writer
 from fonts import arial15, arial35, arial9
 from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr, uploading
 import framebuf
-import time
+from ntptime import utime
+import gc
 
 COUNT = 1
 POWER = True
 PM10 = PM25 = PM100 = HUM = TEMP = PRESS = 0
+GMT_SHIFT_HR = 0
 
 class Screen():
     
@@ -29,6 +31,7 @@ class Screen():
         elif COUNT == 4: Screen.mainScreen(HUM, 'H')
         elif COUNT == 5: Screen.mainScreen(TEMP, 'T')
         elif COUNT == 6: Screen.mainScreen(PRESS, 'P')
+        elif COUNT == 7: Screen.timeScreen()
         else: Screen.wifiScreen(WIFI.status(), WIFI._ssid)
 
     @staticmethod
@@ -40,8 +43,13 @@ class Screen():
     def setWIFI(wifi):
         global WIFI    
         WIFI = wifi
+
+    @staticmethod
+    def setGMTShiftHr(shift):
+        global GMT_SHIFT_HR
+        GMT_SHIFT_HR = shift
     
-    def __init__(self, btn_pin, mode = '+', debounceDelayMS = 250):
+    def __init__(self, btn_pin, mode = '+', debounceDelayMS = 175):
         self.button = ESP32.Pin(btn_pin, ESP32.Pin.IN, ESP32.Pin.PULL_UP)
         self.lastTime = 0
         self.debounceDelayMS = debounceDelayMS
@@ -53,25 +61,33 @@ class Screen():
         global COUNT, POWER
 
         state = ESP32.disable_irq()
-
-        currentTime = time.ticks_ms()
-        if currentTime - self.lastTime >= self.debounceDelayMS:
-            self.lastTime = currentTime
-            if self.mode == '+' and POWER: 
-                if COUNT < 7: COUNT += 1
-                else: COUNT = 1
-            elif self.mode == '-' and POWER:
-                if COUNT > 1: COUNT -= 1
-                else: COUNT = 7
-            else:
-                POWER = not POWER
-            Screen._update()
+ 
+        if utime.ticks_ms() - self.lastTime > self.debounceDelayMS:
+            if self.button.value() == 1:
+                if self.mode == '+' and POWER: 
+                    if COUNT < 8: COUNT += 1
+                    else: COUNT = 1
+                elif self.mode == '-' and POWER:
+                    if COUNT > 1: COUNT -= 1
+                    else: COUNT = 8
+                else:
+                    POWER = not POWER
+                Screen._update()
+            self.lastTime = utime.ticks_ms()
 
         ESP32.enable_irq(state)
+    
+    @staticmethod
+    def getTime():
+        return utime.localtime(utime.mktime(utime.localtime()) - (GMT_SHIFT_HR * 3600))
+
+    @staticmethod
+    def power():
+        return POWER
 
     @staticmethod
     def _getImage(imgPy):
-            return framebuf.FrameBuffer(imgPy.img, imgPy.width, imgPy.height, framebuf.MONO_HLSB)
+        return framebuf.FrameBuffer(imgPy.img, imgPy.width, imgPy.height, framebuf.MONO_HLSB)
 
     @staticmethod
     def mainScreen(meas, mode):
@@ -180,6 +196,19 @@ class Screen():
             SSD.fill_rect(0, 56, 128, 40, 0)
             SSD.text("{:.0%}".format(percentages[i]), 58, 56)
             SSD.show()
-            time.sleep_ms(2000)
+            utime.sleep_ms(2000)
             
+        SSD.show()
+
+    @staticmethod
+    def timeScreen():
+        SSD.fill(0)
+        
+        time = Screen.getTime()
+        wri = Writer(SSD, arial35, verbose=False)
+        Writer.set_textpos(SSD, 15, 2) 
+        wri.printstring('{:02d}:{:02d}'.format(time[3], time[4]))
+
+        gc.collect()
+
         SSD.show()
