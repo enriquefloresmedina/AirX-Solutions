@@ -16,7 +16,6 @@ NODE = const("AT_HOME_2")
 
 NETWORKS = {
     "Enrique's iPhone" : "12345678",
-    "iPhone de Sebas" : "sebas123",
     "Jesus" : "12345678",
     "AB" : "12345678",
     "Wall-E" : "diego123",

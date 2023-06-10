@@ -8,7 +8,7 @@ import _thread
 def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
 
     if not WIFI.status():
-        if WIFI.scanForNetworks(NETWORKS, 1300): WIFI.connect()
+        if WIFI.scanForNetworks(NETWORKS, 1000): WIFI.connect()
 
     if WIFI.status():
         
