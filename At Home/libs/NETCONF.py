@@ -1,7 +1,6 @@
 from libs.SCREEN import Screen
 import network
 import time
-import ntptime
 
 DEBUG = False
 
@@ -24,7 +23,6 @@ class Wifi:
         self._debug('Connected to WIFI network: ' + self._wifi.config('essid'))
         self._debug('IP address: ' + self._wifi.ifconfig()[0])
         Screen.wifiScreen(True, self._wifi.config('essid'))
-        self.setTime()
  
     def disconnect(self):
         if self._wifi.isconnected(): 
@@ -64,10 +62,6 @@ class Wifi:
 
         self._wifi.active(False)
         return False
-
-    def setTime(self):
-        try: ntptime.settime()
-        except: pass
 
     def _debug(self, msg):
         if self.__debug: print(msg)

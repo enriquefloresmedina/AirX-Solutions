@@ -1,5 +1,5 @@
 from setup import WIFI, NODE, NETWORKS
-from libs.SCREEN import Screen
+from libs.TIME import getTime
 import gc
 import json
 import urequests
@@ -8,7 +8,7 @@ import _thread
 def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
 
     if not WIFI.status():
-        if WIFI.scanForNetworks(NETWORKS, 2000): WIFI.connect()
+        if WIFI.scanForNetworks(NETWORKS, 1300): WIFI.connect()
 
     if WIFI.status():
         
@@ -22,7 +22,7 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
             "HUM": round(hum) 
         }
 
-        TIME_LIST = Screen.getTime()
+        TIME_LIST = getTime()
         TIME = "{:04d}:{:02d}:{:02d}-{:02d}:{:02d}:{:02d}".format(TIME_LIST[0], TIME_LIST[1], TIME_LIST[2], 
                                                                   TIME_LIST[3], TIME_LIST[4], TIME_LIST[5])
                                                                   
@@ -36,14 +36,9 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
         with open('DATA.json', 'r') as file:
             datajs = file.read()
             try: response = urequests.put(URL, data = datajs)
-            except: 
-                WIFI.disconnect()
-                if Screen.power(): Screen.wifiScreen(False, WIFI._ssid)
-                _thread.exit()
+            except: _thread.exit()
 
-        if response.status_code == 200: 
-            if Screen.power(): Screen.wifiScreen(True, WIFI._ssid)
+        if response.status_code == 200:
             _thread.exit()
 
-    if Screen.power(): Screen.wifiScreen(False, WIFI._ssid)
     _thread.exit()

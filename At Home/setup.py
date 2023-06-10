@@ -8,8 +8,8 @@ from libs.SCREEN import Screen
 from dht import DHT22
 import gc
 
-READ_TIME_MS = const(7000)
-REF_COUNT_UPLOAD = const(5)
+READ_TIME_MS = const(7400)
+REF_COUNT_UPLOAD = const(6)
 WIFI_TIMEOUT_MS = const(30000)
 GMT_SHIFT_HR = const(6)
 NODE = const("AT_HOME_2")
@@ -28,8 +28,8 @@ SSD = SSD1306_I2C(128, 64, ESP32.SoftI2C(scl=ESP32.Pin(22), sda=ESP32.Pin(21)))
 Screen.setSSD(SSD)
 
 WIFI = Wifi(NETWORKS, WIFI_TIMEOUT_MS)
-Screen.setWIFI(WIFI)
-Screen.setGMTShiftHr(GMT_SHIFT_HR)
+
+Screen.setWIFIandTime(WIFI)
 
 SD = ESP32.SDCard(slot = 2)
 BMP = BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22), freq=100000, timeout=500000))

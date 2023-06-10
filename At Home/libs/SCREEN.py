@@ -1,15 +1,15 @@
 import machine as ESP32
 from libs.WRITER import Writer
+from libs.TIME import getTime, setTime
 from fonts import arial15, arial35, arial9
 from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr, uploading
 import framebuf
-from ntptime import utime
+import time
 import gc
 
 COUNT = 1
 POWER = True
 PM10 = PM25 = PM100 = HUM = TEMP = PRESS = 0
-GMT_SHIFT_HR = 0
 
 class Screen():
     
@@ -40,14 +40,10 @@ class Screen():
         SSD = ssd
     
     @staticmethod
-    def setWIFI(wifi):
+    def setWIFIandTime(wifi):
         global WIFI    
         WIFI = wifi
-
-    @staticmethod
-    def setGMTShiftHr(shift):
-        global GMT_SHIFT_HR
-        GMT_SHIFT_HR = shift
+        setTime()
     
     def __init__(self, btn_pin, mode = '+', debounceDelayMS = 175):
         self.button = ESP32.Pin(btn_pin, ESP32.Pin.IN, ESP32.Pin.PULL_UP)
@@ -62,7 +58,7 @@ class Screen():
 
         state = ESP32.disable_irq()
  
-        if utime.ticks_ms() - self.lastTime > self.debounceDelayMS:
+        if time.ticks_ms() - self.lastTime > self.debounceDelayMS:
             if self.button.value() == 1:
                 if self.mode == '+' and POWER: 
                     if COUNT < 8: COUNT += 1
@@ -73,13 +69,9 @@ class Screen():
                 else:
                     POWER = not POWER
                 Screen._update()
-            self.lastTime = utime.ticks_ms()
+            self.lastTime = time.ticks_ms()
 
         ESP32.enable_irq(state)
-    
-    @staticmethod
-    def getTime():
-        return utime.localtime(utime.mktime(utime.localtime()) - (GMT_SHIFT_HR * 3600))
 
     @staticmethod
     def power():
@@ -196,7 +188,7 @@ class Screen():
             SSD.fill_rect(0, 56, 128, 40, 0)
             SSD.text("{:.0%}".format(percentages[i]), 58, 56)
             SSD.show()
-            utime.sleep_ms(2000)
+            time.sleep_ms(2000)
             
         SSD.show()
 
@@ -204,7 +196,7 @@ class Screen():
     def timeScreen():
         SSD.fill(0)
         
-        time = Screen.getTime()
+        time = getTime()
         wri = Writer(SSD, arial35, verbose=False)
         Writer.set_textpos(SSD, 15, 2) 
         wri.printstring('{:02d}:{:02d}'.format(time[3], time[4]))
