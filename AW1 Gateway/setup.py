@@ -4,9 +4,9 @@ from libs import BMP280 as bmp
 from libs import PMS5003 as pms
 from libs import NETCONF as conf
 from libs import PMS5003 as pms
+from libs.DATA import addToBuffer
 import time
-#from UPLOAD import upload
-import UPLOAD
+import ntptime
 
 # LoRa
 import gc
@@ -24,6 +24,7 @@ PASSWORD = "12345678"
 
 WIFI = conf.WIFI(SSID, PASSWORD)
 NODE = "AW1_GATEWAY_1"
+ntptime.settime()
 
 _pwm = ESP32.PWM(ESP32.Pin(27))
 _pwm.deinit()
@@ -69,7 +70,8 @@ def sendMessage(lora, outgoing):
 def on_receive(lora, payload):
     _pwm.init()
     _pwm.duty(700)
-    #lora.blink_led()
+    time.sleep_ms(300)
+    _pwm.duty(0)
                 
     try:
         Trama = payload.decode()
@@ -82,29 +84,29 @@ def on_receive(lora, payload):
         print(e)
 
     # Check the message received.
-    try:
-        Trama_spl = Trama.split()
-        ID_Sender = Trama_spl[0]
-        ID_MSG = Trama_spl[3]
-        ID_history = ID_MSG + ' ' + ID_Sender
-        if ID_history in historial:   # Si el ID se encuentra en el historial, se borra toda la trama de mensajes
-            del Trama
-            gc.collect()
-            return
-        else:   
-            lora.receive()                 # into in mode Receiver
+    Trama_spl = Trama.split()
+    ID_Sender = Trama_spl[0]
+    ID_MSG = Trama_spl[3]
+    ID_history = ID_MSG + ' ' + ID_Sender
+    if ID_history in historial: 
+        del Trama
+        gc.collect()
+        return
+    else:   
+        lora.receive()                 # into in mode Receiver
 
-            data_fire = Trama_spl[2]
+        data_fire = Trama_spl[2].split(',')
+        dataSend = list(map(int, data_fire))
+        dataSend = dataSend + [Trama_spl[0]]
 
-            UPLOAD.upload(0,0,0,data_fire.split(',')[3],data_fire.split(',')[4],data_fire.split(',')[1],data_fire.split(',')[2],data_fire.split(',')[0],NODE=Trama_spl[0])
-            
-            if len(historial) >= 10:
-                historial.pop(0)             # Se borra el historial mas viejo
-                historial.append(ID_history)         # Se añade el nuevo valor del historial
-            else:
-                historial.append(ID_history)
-    except:
-        print("Error en la trama recibida")
+        addToBuffer(dataSend)
+        
+        if len(historial) >= 10:
+            historial.pop(0)             # Se borra el historial mas viejo
+            historial.append(ID_history)         # Se añade el nuevo valor del historial
+        else:
+            historial.append(ID_history)
+
         
 print('lora', lora)
 

@@ -1,7 +1,4 @@
-from setup import  startMainTimer, startTimers
+from setup import  startMainTimer, startTimers, readTimer
     
 startMainTimer()
 startTimers()
-
-import reads
-reads.CMD = input('S: Stop | D: Delete data and stop\n')
