@@ -1,6 +1,6 @@
 # Implementation and testing
 <a href="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/eef4b75902d785a489e028614c01a48852eefb2b/Implementation%20and%20testing/Implementaci%C3%B3n%20y%20evaluaci%C3%B3n.pdf">
-  <img src="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/11a4814b5b2d3fe26b3879f0b0118b333bf93f0f/Implementation%20and%20testing/VPP.png" alt="VPP">
+  <img src="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/5d0de321287e39a55c2011e115b853edaa4c4adf/Implementation%20and%20testing/VPP.png" alt="VPP">
 </a>
 
 # AwAir
