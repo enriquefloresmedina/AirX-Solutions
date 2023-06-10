@@ -1,3 +1,3 @@
-from setup import startMainTimer, readTimer
+from setup import startMainTimer
 
 startMainTimer()

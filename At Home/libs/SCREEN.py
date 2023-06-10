@@ -1,6 +1,6 @@
 import machine as ESP32
 from libs.WRITER import Writer
-from libs.TIME import getTime, setTime
+from libs.TIME import getTime
 from fonts import arial15, arial35, arial9
 from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr, uploading
 import framebuf
@@ -52,10 +52,9 @@ class Screen():
         SSD = ssd
     
     @staticmethod
-    def setWIFIandTime(wifi):
+    def setWIFI(wifi):
         global WIFI    
         WIFI = wifi
-        setTime()
     
     def __init__(self, btn_pin, mode = '+', debounceDelayMS = 175):
         self.button = ESP32.Pin(btn_pin, ESP32.Pin.IN, ESP32.Pin.PULL_UP)
