@@ -1,3 +1,8 @@
+# Implementation and testing
+<a href="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/eef4b75902d785a489e028614c01a48852eefb2b/Implementation%20and%20testing/Implementaci%C3%B3n%20y%20evaluaci%C3%B3n.pdf">
+  <img src="https://github.com/enriquefloresmedina/AwAir-Sensor/blob/11a4814b5b2d3fe26b3879f0b0118b333bf93f0f/Implementation%20and%20testing/VPP.png" alt="VPP">
+</a>
+
 # AwAir
 Source code, and setup instructions for a low-cost network of embedded systems that obtain measurements of Particulate Matter (PM) and other environmental parameters. The network is composed of nodes and gateways; the nodes obtain measurements and send the information to other nodes, while gateways are connected to WiFi and upload the information received from nodes to a Realtime Database. The main goal is the improvement of the conditions for public and private decision-making on environmental care and public health.
 
