@@ -8,7 +8,6 @@ from libs.DATA import addToBuffer
 import time
 import ntptime
 
-# LoRa
 import gc
 gc.collect()
 
@@ -72,13 +71,13 @@ def on_receive(lora, payload):
     _pwm.duty(700)
     time.sleep_ms(300)
     _pwm.duty(0)
+    _pwm.deinit()
                 
     try:
         Trama = payload.decode()
         rssi = lora.packetRssi()
         print("*** Received message ***\n{}".format(Trama))
         print("with RSSI {}\n".format(rssi))
-        _pwm.duty(0)
         
     except Exception as e:
         print(e)

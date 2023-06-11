@@ -9,7 +9,7 @@ def upload(actData):
 
     TIME_LIST = utime.localtime(utime.mktime(utime.localtime()) - (GMT_SHIFT_HR * 3600))
     TIME = "{:04d}:{:02d}:{:02d}-{:02d}:{:02d}:{:02d}".format(TIME_LIST[0], TIME_LIST[1], TIME_LIST[2], 
-                                                                    TIME_LIST[3], TIME_LIST[4], TIME_LIST[5])
+                                                              TIME_LIST[3], TIME_LIST[4], TIME_LIST[5])
 
     datajson = { 
             "PM10": round(actData[0]),
