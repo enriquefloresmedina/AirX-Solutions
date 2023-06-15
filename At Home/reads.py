@@ -11,9 +11,9 @@ PM10 = PM25 = PM100 = HUM = TEMP = PRESS = ALT = TEMPBMP = 0
 
 def interrupt(timer):
     global COUNTER
-
-    while not PMS.getMeasure(): pass
+    
     Screen.enableScreens()
+    while not PMS.getMeasure(): pass
 
     state = ESP32.disable_irq()
 

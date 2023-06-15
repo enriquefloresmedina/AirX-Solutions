@@ -37,9 +37,8 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
         with open('DATA.json', 'r') as file:
             datajs = file.read()
             try: response = urequests.put(URL, data = datajs)
-            except: _thread.exit()
+            except:_thread.exit()
 
-        if response.status_code == 200:
-            _thread.exit()
+        if response.status_code == 200: _thread.exit()
 
     _thread.exit()

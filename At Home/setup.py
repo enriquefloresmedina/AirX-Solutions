@@ -9,8 +9,8 @@ from libs.TIME import setTime
 from dht import DHT22
 import gc
 
-READ_TIME_MS = const(7000)
-REF_COUNT_UPLOAD = const(6)
+READ_TIME_MS = const(6000)
+REF_COUNT_UPLOAD = const(15)
 WIFI_TIMEOUT_MS = const(30000)
 NODE = const("AT_HOME_2")
 
