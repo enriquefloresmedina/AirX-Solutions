@@ -10,7 +10,7 @@ from dht import DHT22
 import gc
 
 READ_TIME_MS = const(6000)
-REF_COUNT_UPLOAD = const(15)
+REF_COUNT_UPLOAD = const(50)
 WIFI_TIMEOUT_MS = const(30000)
 NODE = const("AT_HOME_2")
 
