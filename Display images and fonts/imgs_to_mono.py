@@ -2,7 +2,7 @@ from PIL import Image
 import sys
 from pathlib import Path
 
-image = "wifiOk.png"
+image = "uploading.png"
 im_name = Path(image).stem
 
 # Load image
