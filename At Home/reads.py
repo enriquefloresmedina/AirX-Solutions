@@ -2,7 +2,6 @@ import machine as ESP32
 from setup import BMP, PMS, DHT, SD, REF_COUNT_UPLOAD
 from libs.UPLOAD import upload
 from libs.SCREEN import Screen
-import _thread
 import os
 import gc
 
@@ -12,7 +11,6 @@ PM10 = PM25 = PM100 = HUM = TEMP = PRESS = ALT = TEMPBMP = 0
 def interrupt(timer):
     global COUNTER
     
-    Screen.enableScreens()
     while not PMS.getMeasure(): pass
 
     state = ESP32.disable_irq()
@@ -36,9 +34,9 @@ def interrupt(timer):
     except: pass
 
     if average(DATA):
-        Screen.disableScreens()
+        Screen.disableScreens(True)
         if Screen.power(): Screen.uploadingScreen()
-        _thread.start_new_thread(upload, DATA)
+        upload(DATA)
 
     gc.collect()
         

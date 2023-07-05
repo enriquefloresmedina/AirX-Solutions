@@ -1,11 +1,11 @@
+from libs.SCREEN import Screen
 from setup import WIFI, NODE, NETWORKS
 from libs.TIME import getTime
 import gc
 import json
 import urequests
-import _thread
 
-def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
+def upload(data):
 
     if not WIFI.status():
         if WIFI.scanForNetworks(NETWORKS, 1000): 
@@ -14,13 +14,13 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
     if WIFI.status():
         
         datajson = { 
-            "PM10": round(pm10),
-            "PM25": round(pm25),
-            "PM100": round(pm100),
-            "PRESS": round(press),
-            "ALT": round(alt),
-            "TEMP": round((temp + tempBMP) / 2), 
-            "HUM": round(hum) 
+            "PM10": round(data[0]),
+            "PM25": round(data[1]),
+            "PM100": round(data[2]),
+            "PRESS": round(data[5]),
+            "ALT": round(data[6]),
+            "TEMP": round((data[3] + data[7]) / 2), 
+            "HUM": round(data[4]) 
         }
 
         TIME_LIST = getTime()
@@ -37,8 +37,13 @@ def upload(pm10, pm25, pm100, temp, hum, press, alt, tempBMP):
         with open('DATA.json', 'r') as file:
             datajs = file.read()
             try: response = urequests.put(URL, data = datajs)
-            except:_thread.exit()
+            except: 
+                Screen.disableScreens(False)
+                return
 
-        if response.status_code == 200: _thread.exit()
+        if response.status_code == 200: 
+            Screen.disableScreens(False)
+            return
 
-    _thread.exit()
+    Screen.disableScreens(False)
+    return

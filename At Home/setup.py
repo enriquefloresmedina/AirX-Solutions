@@ -12,14 +12,16 @@ import gc
 READ_TIME_MS = const(6000)
 REF_COUNT_UPLOAD = const(50)
 WIFI_TIMEOUT_MS = const(30000)
-NODE = const("AT_HOME_2")
+NODE = const("ZACATECAS")
 
 NETWORKS = {
     "Enrique's iPhone" : "12345678",
     "Jesus" : "12345678",
     "AB" : "12345678",
     "Wall-E" : "diego123",
-    "INFINITUM5B10_2.4" : "6200370058"
+    "INFINITUM5B10_2.4" : "6200370058",
+    "INFINITUMC5C0_2.4" : "3050568137",
+    "Netgear Flores" : "FrutosSalvajes27x"
 }
 
 gc.collect()

@@ -2,7 +2,7 @@ import machine as ESP32
 from libs.WRITER import Writer
 from libs.TIME import getTime
 from fonts import arial15, arial35, arial9
-from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr, uploading
+from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr
 import framebuf
 import time
 import gc
@@ -16,7 +16,7 @@ class Screen():
     
     @staticmethod
     def setMeasurments(data):
-        global PM10, PM25, PM100, HUM, TEMP, PRESS
+        global PM10, PM25, PM100, HUM, TEMP, PRESS, UPLOADING
 
         PM10 = data[0]; PM25 = data[1]; PM100 = data[2]
         TEMP = data[3]; HUM = data[4]; PRESS = data[5]
@@ -24,14 +24,9 @@ class Screen():
         Screen._update()
 
     @staticmethod
-    def disableScreens():
+    def disableScreens(val):
         global DISABLE
-        DISABLE = True
-
-    @staticmethod
-    def enableScreens():
-        global DISABLE
-        DISABLE = False
+        DISABLE = val
 
     @staticmethod
     def _update():
@@ -171,8 +166,9 @@ class Screen():
 
     @staticmethod
     def uploadingScreen():
-        SSD.fill(0)
-        SSD.blit(Screen._getImage(uploading), 0, 0)
+        SSD.ellipse(4, 12, 3, 3, 1, 1)
+        SSD.ellipse(4, 24, 3, 3, 1, 1)
+        SSD.ellipse(4, 36, 3, 3, 1, 1)
         SSD.show()
 
     @staticmethod
