@@ -17,10 +17,11 @@ def upload(data):
             "PM10": round(data[0]),
             "PM25": round(data[1]),
             "PM100": round(data[2]),
+            "TEMP": round(data[3]),
+            "HUM": round(data[4]),
             "PRESS": round(data[5]),
             "ALT": round(data[6]),
-            "TEMP": round((data[3] + data[7]) / 2), 
-            "HUM": round(data[4]) 
+            "AQI" : round(data[7])
         }
 
         TIME_LIST = getTime()

@@ -3,23 +3,26 @@ from libs.WRITER import Writer
 from libs.TIME import getTime
 from fonts import arial15, arial35, arial9
 from icons import drop, termometer, pressure, pm10, pm25, pm100, wifiOk, wifiErr
+from icons import aqi1, aqi2, aqi3, aqi4, aqi5, aqi6, altitude
 import framebuf
 import time
 import gc
 
-COUNT = 1
+NUM_SCREENS = 10
 POWER = True
-PM10 = PM25 = PM100 = HUM = TEMP = PRESS = 0
 DISABLE = False
+PM10 = PM25 = PM100 = TEMP = HUM = PRESS = ALT = AQI = COUNT = 0
+POLL = ''
 
 class Screen():
     
     @staticmethod
     def setMeasurments(data):
-        global PM10, PM25, PM100, HUM, TEMP, PRESS, UPLOADING
+        global PM10, PM25, PM100, TEMP, HUM, PRESS, ALT, AQI, POLL
 
         PM10 = data[0]; PM25 = data[1]; PM100 = data[2]
-        TEMP = data[3]; HUM = data[4]; PRESS = data[5]
+        TEMP = data[3]; HUM =  data[4]; PRESS = data[5]; 
+        ALT =  data[6]; AQI =  data[7]; POLL = data[8]
 
         Screen._update()
 
@@ -32,13 +35,15 @@ class Screen():
     def _update():
         if not DISABLE:
             if not POWER: SSD.fill(0); SSD.show()
-            elif COUNT == 1: Screen.mainScreen(PM10, 'PM1.0')
-            elif COUNT == 2: Screen.mainScreen(PM25, 'PM2.5')
-            elif COUNT == 3: Screen.mainScreen(PM100, 'PM10')
+            elif COUNT == 0: Screen.mainScreen(PM10, 'PM1.0')
+            elif COUNT == 1: Screen.mainScreen(PM25, 'PM2.5')
+            elif COUNT == 2: Screen.mainScreen(PM100, 'PM10')
+            elif COUNT == 3: Screen.mainScreen(AQI, 'AQI')
             elif COUNT == 4: Screen.mainScreen(HUM, 'H')
             elif COUNT == 5: Screen.mainScreen(TEMP, 'T')
             elif COUNT == 6: Screen.mainScreen(PRESS, 'P')
-            elif COUNT == 7: Screen.timeScreen()
+            elif COUNT == 7: Screen.mainScreen(ALT, 'A')
+            elif COUNT == 8: Screen.timeScreen()
             else: Screen.wifiScreen(WIFI.status(), WIFI._ssid)
 
     @staticmethod
@@ -60,20 +65,19 @@ class Screen():
         Screen._update()
 
     def _onPress(self, pin):
-        global COUNT, POWER
+        global COUNT, POWER, NUM_SCREENS
 
         state = ESP32.disable_irq()
  
         if time.ticks_ms() - self.lastTime > self.debounceDelayMS:
             if self.button.value() == 1:
                 if self.mode == '+' and POWER: 
-                    if COUNT < 8: COUNT += 1
-                    else: COUNT = 1
+                    COUNT += 1
                 elif self.mode == '-' and POWER:
-                    if COUNT > 1: COUNT -= 1
-                    else: COUNT = 8
+                    COUNT -= 1
                 else:
                     POWER = not POWER
+                COUNT = (COUNT + NUM_SCREENS) % NUM_SCREENS
                 Screen._update()
             self.lastTime = time.ticks_ms()
 
@@ -101,6 +105,19 @@ class Screen():
                 return int((slotLen / 100) * (meas - 200) + (4 * slotLen))
             else:
                 return int((slotLen / 200) * (meas - 300) + (5 * slotLen))
+        
+        def addPMtext(txt):
+            wri = Writer(SSD, arial9, verbose=False)
+            if txt == 'PM10':
+                Writer.set_textpos(SSD, 40, 95)
+                wri.printstring(txt[:2])
+                Writer.set_textpos(SSD, 40, 111)
+                wri.printstring(txt[2:])
+            else:
+                Writer.set_textpos(SSD, 40, 93)
+                wri.printstring(txt[:2])
+                Writer.set_textpos(SSD, 40, 109)
+                wri.printstring(txt[2:])
 
         if mode == 'H':
             SSD.blit(Screen._getImage(drop), 20, -6)
@@ -121,26 +138,51 @@ class Screen():
             Writer.set_textpos(SSD, 7, 91)
             wri.printstring(text)
         elif mode == 'PM10':
-            SSD.blit(Screen._getImage(pm100), 0, -4)
+            SSD.blit(Screen._getImage(pm100), 0, 0)
             scaledMeas = getScaledMeas(meas)
+            addPMtext(mode)
         elif mode == 'PM2.5':
-            SSD.blit(Screen._getImage(pm25), 0, -4)
+            SSD.blit(Screen._getImage(pm25), 0, 0)
+            scaledMeas = getScaledMeas(meas)
+            addPMtext(mode)
+        elif mode == 'PM1.0':
+            SSD.blit(Screen._getImage(pm10), 0, 0)
+            scaledMeas = getScaledMeas(meas)
+            addPMtext(mode)
+        elif mode == 'AQI':
+            if meas <= 50:
+                SSD.blit(Screen._getImage(aqi1), 0, 0)
+            elif meas <= 100:
+                SSD.blit(Screen._getImage(aqi2), 0, 0)
+            elif meas <= 150:
+                SSD.blit(Screen._getImage(aqi3), 0, 0)
+            elif meas <= 200:
+                SSD.blit(Screen._getImage(aqi4), 0, 0)
+            elif meas <= 300:
+                SSD.blit(Screen._getImage(aqi5), 0, 0)
+            else:
+                SSD.blit(Screen._getImage(aqi6), 0, 0)
+            addPMtext(POLL)
             scaledMeas = getScaledMeas(meas)
         else:
-            SSD.blit(Screen._getImage(pm10), 0, -4)
-            scaledMeas = getScaledMeas(meas)
+            SSD.blit(Screen._getImage(altitude), 18, -4)
+            text = 'kM'
+            Writer.set_textpos(SSD, 7, 94)
+            wri.printstring(text)
+            scaledMeas = int(meas * 128 / 3.7)
 
         wri = Writer(SSD, arial35, verbose=False)
         if meas < 0:
             meas = -meas
             SSD.rect(0, SSD.height - 40, 11, 5, 1, 1)
-        Writer.set_textpos(SSD, 7, 42 - len(str(meas)) * 14) 
+        if mode == 'A': Writer.set_textpos(SSD, 7, 9) 
+        else: Writer.set_textpos(SSD, 7, 42 - len(str(meas)) * 14) 
         wri.printstring('{!s}'.format(meas))
 
         SSD.rect(0, SSD.height - 12, SSD.width, 12, 1, 0)
         SSD.rect(2, SSD.height - 10, scaledMeas, 8, 1, 1)
 
-        if mode == 'PM1.0' or mode == 'PM2.5' or mode == 'PM10':
+        if mode == 'PM1.0' or mode == 'PM2.5' or mode == 'PM10' or mode == 'AQI':
             for i in range(1, 6):
                 delta = 5
                 side = (SSD.width - delta * 5) // 6

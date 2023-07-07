@@ -141,19 +141,19 @@ class PMS5003:
 
     def _convertToAQI(self, value, isPM100):
         if isPM100:
-            if value <= 54: return int((50 / 54) * value)
-            elif value <= 154: return int((49 / 99) * (value - 55) + 51)
-            elif value <= 254: return int((49 / 99) * (value - 155) + 101)
-            elif value <= 354: return int((49 / 99) * (value - 255) + 151)
-            elif value <= 424: return int((99 / 69) * (value - 355) + 201)
-            else: return int((199 / 179) * (value - 425) + 301)
+            if value <= 54: return round((50 / 54) * value)
+            elif value <= 154: return round((49 / 99) * (value - 55) + 51)
+            elif value <= 254: return round((49 / 99) * (value - 155) + 101)
+            elif value <= 354: return round((49 / 99) * (value - 255) + 151)
+            elif value <= 424: return round((99 / 69) * (value - 355) + 201)
+            else: return round((199 / 179) * (value - 425) + 301)
         else:
-            if value <= 12: return int((50 / 12) * value)
-            elif value <= 35: return int((49 / 23.3) * (value - 12.1) + 51)
-            elif value <= 55: return int((49 / 19.9) * (value - 35.5) + 101)
-            elif value <= 150: return int((49 / 94.9) * (value - 55.5) + 151)
-            elif value <= 250: return int((99 / 99.9) * (value - 150.5) + 201)
-            else: return int((199 / 249.9) * (value - 250.5) + 301)
+            if value <= 12: return round((50 / 12) * value)
+            elif value <= 35: return round((49 / 23.3) * (value - 12.1) + 51)
+            elif value <= 55: return round((49 / 19.9) * (value - 35.5) + 101)
+            elif value <= 150: return round((49 / 94.9) * (value - 55.5) + 151)
+            elif value <= 250: return round((99 / 99.9) * (value - 150.5) + 201)
+            else: return round((199 / 249.9) * (value - 250.5) + 301)
 
     def sleep(self):
         self._sendCmd(SLEEP_SET, 0)
@@ -251,3 +251,16 @@ class PMS5003:
     @property
     def pm100_aqi(self):
         return self._convertToAQI(self._pm100_env, True)
+
+    @property
+    def pm_aqi(self):
+        return max(self.pm10_aqi, self.pm25_aqi, self.pm100_aqi)
+
+    @property
+    def main_pollutant(self):
+        if (self.pm10_aqi > self.pm25_aqi) and (self.pm10_aqi > self.pm100_aqi):
+            return 'PM1.0'
+        elif (self.pm25_aqi > self.pm10_aqi) and (self.pm25_aqi > self.pm100_aqi):
+            return 'PM2.5'
+        else:
+            return 'PM10' 

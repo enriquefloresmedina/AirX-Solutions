@@ -1,8 +1,7 @@
 from PIL import Image
-import sys
 from pathlib import Path
 
-image = "uploading.png"
+image = "pm100.png"
 im_name = Path(image).stem
 
 # Load image
