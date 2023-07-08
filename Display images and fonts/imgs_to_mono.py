@@ -1,7 +1,7 @@
 from PIL import Image
 from pathlib import Path
 
-image = "pm100.png"
+image = "aqi2.png"
 im_name = Path(image).stem
 
 # Load image

@@ -8,28 +8,23 @@ import framebuf
 import time
 import gc
 
-NUM_SCREENS = 10
+NUM_SCREENS = 11
 POWER = True
 DISABLE = False
 PM10 = PM25 = PM100 = TEMP = HUM = PRESS = ALT = AQI = COUNT = 0
-POLL = ''
+POLLUTANT = ''
 
 class Screen():
     
     @staticmethod
     def setMeasurments(data):
-        global PM10, PM25, PM100, TEMP, HUM, PRESS, ALT, AQI, POLL
+        global PM10, PM25, PM100, TEMP, HUM, PRESS, ALT, AQI, POLLUTANT
 
         PM10 = data[0]; PM25 = data[1]; PM100 = data[2]
         TEMP = data[3]; HUM =  data[4]; PRESS = data[5]; 
-        ALT =  data[6]; AQI =  data[7]; POLL = data[8]
+        ALT =  data[6]; AQI =  data[7]; POLLUTANT = data[8]
 
         Screen._update()
-
-    @staticmethod
-    def disableScreens(val):
-        global DISABLE
-        DISABLE = val
 
     @staticmethod
     def _update():
@@ -44,6 +39,7 @@ class Screen():
             elif COUNT == 6: Screen.mainScreen(PRESS, 'P')
             elif COUNT == 7: Screen.mainScreen(ALT, 'A')
             elif COUNT == 8: Screen.timeScreen()
+            elif COUNT == 9: Screen.dateScreen()
             else: Screen.wifiScreen(WIFI.status(), WIFI._ssid)
 
     @staticmethod
@@ -82,6 +78,11 @@ class Screen():
             self.lastTime = time.ticks_ms()
 
         ESP32.enable_irq(state)
+
+    @staticmethod
+    def disableScreens(val):
+        global DISABLE
+        DISABLE = val
 
     @staticmethod
     def power():
@@ -162,7 +163,7 @@ class Screen():
                 SSD.blit(Screen._getImage(aqi5), 0, 0)
             else:
                 SSD.blit(Screen._getImage(aqi6), 0, 0)
-            addPMtext(POLL)
+            addPMtext(POLLUTANT)
             scaledMeas = getScaledMeas(meas)
         else:
             SSD.blit(Screen._getImage(altitude), 18, -4)
@@ -242,13 +243,46 @@ class Screen():
         SSD.show()
 
     @staticmethod
+    def dateScreen():
+        SSD.fill(0)
+
+        month = int(getTime()[5:7])
+        day = getTime()[8:10]
+        year = getTime()[:4]
+
+        if month == 1: month = 'JAN'
+        elif month == 2: month = 'FEB'
+        elif month == 3: month = 'MAR'
+        elif month == 4: month = 'APR'
+        elif month == 5: month = 'MAY'
+        elif month == 6: month = 'JUN'
+        elif month == 7: month = 'JUL'
+        elif month == 8: month = 'AUG'
+        elif month == 9: month = 'SEP'
+        elif month == 10: month = 'OCT'
+        elif month == 11: month = 'NOV'
+        elif month == 12: month = 'DEC'
+
+        wri = Writer(SSD, arial35, verbose=False)
+        Writer.set_textpos(SSD, 15, 10)
+        wri.printstring(day)
+        wri = Writer(SSD, arial15, verbose=False)
+        Writer.set_textpos(SSD, 15, 75)
+        wri.printstring(month)
+        Writer.set_textpos(SSD, 35, 75)
+        wri.printstring(year)
+
+        gc.collect()
+
+        SSD.show()
+
+    @staticmethod
     def timeScreen():
         SSD.fill(0)
         
-        time = getTime()
         wri = Writer(SSD, arial35, verbose=False)
         Writer.set_textpos(SSD, 15, 2) 
-        wri.printstring('{:02d}:{:02d}'.format(time[3], time[4]))
+        wri.printstring(getTime()[11:16])
 
         gc.collect()
 

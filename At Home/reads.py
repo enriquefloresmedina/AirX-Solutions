@@ -1,5 +1,6 @@
 import machine as ESP32
 from setup import BMP, PMS, DHT, SD, REF_COUNT_UPLOAD
+from libs.TIME import getTime
 from libs.UPLOAD import upload
 from libs.SCREEN import Screen
 import os
@@ -12,11 +13,12 @@ def interrupt(timer):
     global COUNTER
     
     while not PMS.getMeasure(): pass
+    DHT.measure()
 
     state = ESP32.disable_irq()
 
     COUNTER += 1
-    DATA = readSensors()
+    DATA = extractSensorsData()
 
     ESP32.enable_irq(state)
 
@@ -25,10 +27,12 @@ def interrupt(timer):
     if average(DATA):
         Screen.disableScreens(True)
         if Screen.power(): Screen.uploadingScreen()
-        UP_DATA = [PM10, PM25, PM100, TEMP, HUM, PRESS, ALT, AQI]
+        UP_DATA = [round(PM10), round(PM25), round(PM100), 
+                   round(TEMP), round(HUM), round(PRESS), 
+                   round(ALT * 10) / 10, round(AQI)]
         upload(UP_DATA)
 
-        try: writeToSD(','.join(map(str, UP_DATA)))
+        try: writeToSD(','.join(map(str, UP_DATA.insert(0, getTime()))))
         except: pass
 
     gc.collect()
@@ -51,12 +55,12 @@ def average(data):
 
     return False
 
-def readSensors():
+def extractSensorsData():
     pm10 = PMS.pm10_env; pm25 = PMS.pm25_env; pm100 = PMS.pm100_env
     aqi = PMS.pm_aqi; mainPoll = PMS.main_pollutant
-    DHT.measure()
     temp = round((DHT.temperature() + BMP.getTemp()) / 2)
-    hum = round(DHT.humidity()); press = round(BMP.getPress() / 1000); 
+    hum = round(DHT.humidity())
+    press = round(BMP.getPress() / 1000); 
     alt = round(BMP.getAltitude() / 100) / 10
 
     return [pm10, pm25, pm100, temp, hum, press, alt, aqi, mainPoll]

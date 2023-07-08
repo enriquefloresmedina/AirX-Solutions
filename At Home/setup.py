@@ -39,7 +39,7 @@ Screen.setWIFI(WIFI)
 SD = ESP32.SDCard(slot = 2)
 BMP = BMP280(ESP32.SoftI2C(sda=ESP32.Pin(21), scl=ESP32.Pin(22), freq=100000, timeout=500000))
 DHT = DHT22(ESP32.Pin(32))
-PMS = PMS5003(ESP32.UART(1, tx=17, rx=16, baudrate=9600), reset_pin=ESP32.Pin(4, ESP32.Pin.OUT), passive_mode=True, awake=True)
+PMS = PMS5003(ESP32.UART(1, tx=17, rx=16, baudrate=9600), reset_pin=ESP32.Pin(4, ESP32.Pin.OUT), passive_mode=True)
 
 BTN_SUM = Screen(27, mode = '+')
 BTN_SUB = Screen(12, mode = '-')

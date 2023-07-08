@@ -263,4 +263,4 @@ class PMS5003:
         elif (self.pm25_aqi > self.pm10_aqi) and (self.pm25_aqi > self.pm100_aqi):
             return 'PM2.5'
         else:
-            return 'PM10' 
+            return 'PM10'

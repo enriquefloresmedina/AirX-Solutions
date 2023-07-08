@@ -14,21 +14,17 @@ def upload(data):
     if WIFI.status():
         
         datajson = { 
-            "PM10": round(data[0]),
-            "PM25": round(data[1]),
-            "PM100": round(data[2]),
-            "TEMP": round(data[3]),
-            "HUM": round(data[4]),
-            "PRESS": round(data[5]),
-            "ALT": round(data[6]),
-            "AQI" : round(data[7])
+            "PM10":  data[0],
+            "PM25":  data[1],
+            "PM100": data[2],
+            "TEMP":  data[3],
+            "HUM":   data[4],
+            "PRESS": data[5],
+            "ALT":   data[6],
+            "AQI" :  data[7]
         }
-
-        TIME_LIST = getTime()
-        TIME = "{:04d}:{:02d}:{:02d}-{:02d}:{:02d}:{:02d}".format(TIME_LIST[0], TIME_LIST[1], TIME_LIST[2], 
-                                                                  TIME_LIST[3], TIME_LIST[4], TIME_LIST[5])
                                                                   
-        URL = 'https://awair-database-default-rtdb.firebaseio.com/TEC/' + NODE + '/' + TIME + '.json'
+        URL = 'https://awair-database-default-rtdb.firebaseio.com/TEC/' + NODE + '/' + getTime() + '.json'
 
         gc.collect()
 
