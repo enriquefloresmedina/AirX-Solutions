@@ -47,9 +47,9 @@ https://nodejs.org/en [18.16.1 LTS] as of July, 2023
 
 **8. Create a project and upload it to the ESP32**
 
-- Create a folder with a *main.py* file
+- Create a folder with a *main.py* file or download the software for any of the *AirX Versions* into a folder
 - Open that folder in the VS Code explorer
-- Click on upload
+- Click `Upload`
 
 The code will run after the upload is done. You can use *Ctrl+C* to stop the execution
 
