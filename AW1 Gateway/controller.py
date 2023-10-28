@@ -1,6 +1,4 @@
-from time import sleep
-
-            
+from time import sleep        
 class Controller:
 
     class Mock:
