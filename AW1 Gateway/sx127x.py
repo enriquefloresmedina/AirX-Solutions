@@ -245,8 +245,6 @@ class SX127x:
             if sbw <= bins[i]:
                 bw = i
                 break
-                
-        # bw = bins.index(sbw)
         
         self.writeRegister(REG_MODEM_CONFIG_1, (self.readRegister(REG_MODEM_CONFIG_1) & 0x0f) | (bw << 4))
 
@@ -270,22 +268,10 @@ class SX127x:
  
     def setSyncWord(self, sw):
         self.writeRegister(REG_SYNC_WORD, sw) 
-         
-    
-    # def enable_Rx_Done_IRQ(self, enable = True):
-        # if enable:
-            # self.writeRegister(REG_IRQ_FLAGS_MASK, self.readRegister(REG_IRQ_FLAGS_MASK) & ~IRQ_RX_DONE_MASK)
-        # else:
-            # self.writeRegister(REG_IRQ_FLAGS_MASK, self.readRegister(REG_IRQ_FLAGS_MASK) | IRQ_RX_DONE_MASK)
-   
-   
-    # def dumpRegisters(self):
-        # for i in range(128):
-            # print("0x{0:02x}: {1:02x}".format(i, self.readRegister(i)))
 
     
     def implicitHeaderMode(self, implicitHeaderMode = False):
-        if self._implicitHeaderMode != implicitHeaderMode:  # set value only if different.
+        if self._implicitHeaderMode != implicitHeaderMode:
             self._implicitHeaderMode = implicitHeaderMode
             modem_config_1 = self.readRegister(REG_MODEM_CONFIG_1)
             config = modem_config_1 | 0x01 if implicitHeaderMode else modem_config_1 & 0xfe
@@ -380,4 +366,3 @@ class SX127x:
         gc.collect()
         if config_lora.IS_MICROPYTHON:
             print('[Memory - free: {}   allocated: {}]'.format(gc.mem_free(), gc.mem_alloc()))
-            

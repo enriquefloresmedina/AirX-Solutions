@@ -36,16 +36,11 @@ def interrupt(timer):
 
     ESP32.enable_irq(state)
 
-    #sendMessage(lora, DATA_SEND)
-    # Into mode receiver
     lora.receive()
-    #print('El historial es: {}'.format(historial))
 
     # Put PMS to sleep again
     PMS.sleep()
 
-    # Restart timers for new lecture
-    
     buff = getBuffer()
     while len(buff) >= 1:
         upload(buff.pop(0))
